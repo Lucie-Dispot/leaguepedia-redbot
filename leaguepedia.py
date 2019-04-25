@@ -26,9 +26,12 @@ class Leaguepedia(commands.Cog):
             player_infos = result['cargoquery'][0]['title']
             print(player_infos)
             embed = discord.Embed(title=player_infos['ID'], description=player_infos['Name'], url='https://lol.gamepedia.com/{0}'.format(player_infos['ID'].replace(' ', '_')))
-            embed.set_thumbnail(url='https://lol.gamepedia.com/File:{0}'.format(player_infos['Image'].replace(' ', '_')))
-            embed.add_field(name='Team', value=player_infos['Team'], inline=True)
-            await ctx.send(embed)
+            embed.set_thumbnail(url='https://lol.gamepedia.com/Special:Filepath/{0}'.format(player_infos['Image'].replace(' ', '_')))
+            team = player_infos['Team']
+            if not team:
+                team = 'No current team'
+            embed.add_field(name='Team', value=team, inline=True)
+            await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Leaguepedia())
