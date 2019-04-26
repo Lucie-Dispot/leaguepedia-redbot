@@ -40,18 +40,15 @@ class Leaguepedia(commands.Cog):
         embed = discord.Embed(title='Upcoming matches')
         tournaments = ''
         matchups = ''
-        countdowns = ''
         for match in results['cargoquery']:
             date = datetime.strptime(match['title']['DateTime UTC'], '%Y-%m-%d %H:%M:%S')
             delta = date - datetime.utcnow()
             formatted_time = '{0}h {1}m'.format(delta.seconds // 3600, (delta.seconds // 60) % 60)
             tournaments += '[{0}]({1})'.format(formatted_time, match['title']['Stream'])
             matchups += '| [{0}](https://lol.gamepedia.com/{1}) vs [{2}](https://lol.gamepedia.com/{3})\n'.format(match['title']['Team1'], match['title']['Team1'].replace(' ', '_'), match['title']['Team2'], match['title']['Team2'].replace(' ', '_'))
-            # countdowns += '| [{0}]({1})\n'.format(formatted_time, match['title']['Stream'])
             tournaments += ' | [{0}](https://lol.gamepedia.com/{1})\n'.format(match['title']['ShownName'], match['title']['OverviewPage'].replace(' ', '_'))
         embed.add_field(name='Timer     Tournament', inline=True, value=tournaments)
         embed.add_field(name='Match', inline=True, value=matchups)
-        # embed.add_field(name='Countdown', inline=True, value=countdowns)
         await ctx.send(embed=embed)
 
 def setup(bot):
