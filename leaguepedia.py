@@ -45,7 +45,7 @@ class Leaguepedia(commands.Cog):
         # Two cases: global upcoming or with argument
         display_tournaments = []
         regex = re.match('^!upcoming (.*)', ctx.message.content)
-        if regex.group(1):
+        if regex:
             # Get League from CCMTournaments
             tournaments_results = site.api('cargoquery', tables='CCMTournaments', fields='OverviewPage,StandardName', order_by='Year DESC', where='lower(League)="{0}"'.format(regex.group(1).lower()))
             # TODO Find closest match if no results
@@ -76,6 +76,7 @@ class Leaguepedia(commands.Cog):
         del display_tournaments[5:]
 
         embed = discord.Embed(title='Upcoming matches')
+        times = ''
         tournaments = ''
         matchups = ''
         for match in display_tournaments:
@@ -84,11 +85,17 @@ class Leaguepedia(commands.Cog):
             formatted_time = '{0}h {1}m'.format(delta.seconds // 3600, (delta.seconds // 60) % 60)
             if delta.days > 0:
                 formatted_time = '{0}d '.format(delta.days) + formatted_time
-            tournaments += '[{0}]({1})'.format(formatted_time, match['title']['Stream'])
-            matchups += '| [{0}](https://lol.gamepedia.com/{1}) vs [{2}](https://lol.gamepedia.com/{3})\n'.format(match['title']['Team1'], match['title']['Team1'].replace(' ', '_'), match['title']['Team2'], match['title']['Team2'].replace(' ', '_'))
-            tournaments += ' | [{0}](https://lol.gamepedia.com/{1})\n'.format(match['title']['ShownName'], match['title']['OverviewPage'].replace(' ', '_'))
-        embed.add_field(name='Timer     Tournament', inline=True, value=tournaments)
+            times += '[{0}]({1})\n'.format(formatted_time, match['title']['Stream'])
+
+            # Request page for each team & get short name
+            team1_tag = site.expandtemplates('{{Team|' + match['title']['Team1'].lower() + '|short}}')
+            team2_tag = site.expandtemplates('{{Team|' + match['title']['Team2'].lower() + '|short}}')
+            matchups += '[{0}](https://lol.gamepedia.com/{1}) vs [{2}](https://lol.gamepedia.com/{3})\n'.format(team1_tag, match['title']['Team1'].replace(' ', '_'), team2_tag, match['title']['Team2'].replace(' ', '_'))
+
+            tournaments += '[{0}](https://lol.gamepedia.com/{1})\n'.format(match['title']['ShownName'], match['title']['OverviewPage'].replace(' ', '_'))
+        embed.add_field(name='Tournament', inline=True, value=tournaments)
         embed.add_field(name='Match', inline=True, value=matchups)
+        embed.add_field(name='Timer', inline=True, value=times)
         await ctx.send(embed=embed)
 
 def setup(bot):
