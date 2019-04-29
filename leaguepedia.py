@@ -75,7 +75,10 @@ class Leaguepedia(commands.Cog):
         display_tournaments.sort(key=sortByDate)
         del display_tournaments[5:]
 
-        embed = discord.Embed(title='Upcoming matches')
+        if regex:
+            embed = discord.Embed(title='Upcoming matches', url='https://lol.gamepedia.com/Special:RunQuery/SpoilerFreeSchedule?SFS[1]={0}&pfRunQueryFormName=SpoilerFreeSchedule'.format(display_tournaments[0]['title']['OverviewPage']).replace(' ', '%20'))
+        else:
+            embed = discord.Embed(title='Upcoming matches')
         times = ''
         tournaments = ''
         matchups = ''
