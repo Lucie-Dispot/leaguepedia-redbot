@@ -98,7 +98,7 @@ class Leaguepedia(commands.Cog):
             tournaments += '[{0}](https://lol.gamepedia.com/{1})\n'.format(match['title']['ShownName'], match['title']['OverviewPage'].replace(' ', '_'))
         embed.add_field(name='Tournament', inline=True, value=tournaments)
         embed.add_field(name='Match', inline=True, value=matchups)
-        embed.add_field(name='Timer', inline=True, value=times)
+        embed.add_field(name='Countdown', inline=True, value=times)
         await ctx.send(embed=embed)
 
 def setup(bot):
