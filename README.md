@@ -36,8 +36,9 @@ First, launch the bot in the console:
 redbot {name}
 ```
 
-Then go on discord to load the cog (the following command must be typed in a discord server where your bot is):
+Then go on discord to load the cog (the following commands must be typed in a discord server where your bot is):
 ```
+[prefix]addpath <path_to_leaguepedia_cog>
 [prefix]load leaguepedia # prefix is the prefix chosen during setup earlier
 ```
 
