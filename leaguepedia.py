@@ -61,11 +61,11 @@ class Leaguepedia(commands.Cog):
                         if league['title']['Event'] == tournament['title']['StandardName']:
                             found = True
                     if found:
-                        tournament_details = site.api('cargoquery', tables='MatchSchedule', fields='Team1,Team2,DateTime_UTC,ShownName,Round,Stream,OverviewPage', limit=5, order_by='DateTime_UTC ASC', where='DateTime_UTC > NOW() - INTERVAL 3 HOUR AND WINNER IS NULL AND OverviewPage="{0}"'.format(tournament['title']['OverviewPage']))
+                        tournament_details = site.api('cargoquery', tables='MatchSchedule', fields='Team1,Team2,DateTime_UTC,ShownName,Round,Stream,OverviewPage', limit=5, order_by='DateTime_UTC ASC', where='DateTime_UTC > NOW() AND WINNER IS NULL AND OverviewPage="{0}"'.format(tournament['title']['OverviewPage']))
                         display_tournaments = display_tournaments + tournament_details['cargoquery']
         else:
             # Global upcoming games
-            results = site.api('cargoquery', tables='MatchSchedule', fields='Team1,Team2,DateTime_UTC,ShownName,Round,Stream,OverviewPage', limit=5, order_by='DateTime_UTC ASC', where='DateTime_UTC > NOW() - INTERVAL 3 HOUR AND WINNER IS NULL')
+            results = site.api('cargoquery', tables='MatchSchedule', fields='Team1,Team2,DateTime_UTC,ShownName,Round,Stream,OverviewPage', limit=5, order_by='DateTime_UTC ASC', where='DateTime_UTC > NOW() AND WINNER IS NULL')
             display_tournaments = results['cargoquery']
 
         if len(display_tournaments) == 0:
