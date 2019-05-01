@@ -42,6 +42,12 @@ class Leaguepedia(commands.Cog):
 
     @commands.command()
     async def upcoming(self, ctx):
+        """
+        Usage: !upcoming <league>
+        Prints the upcoming schedule of the 5 next matches for the specified league.
+        Note: matches on league only (ex: msi, lec, lcs). League name is case insensitive.
+        If no league is specified, prints the upcoming schedule for all leagues.
+        """
         # Two cases: global upcoming or with argument
         display_tournaments = []
         regex = re.match('^!upcoming (.*)', ctx.message.content)
