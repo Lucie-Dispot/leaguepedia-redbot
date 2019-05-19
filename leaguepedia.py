@@ -1,5 +1,6 @@
 from redbot.core import commands
 from datetime import datetime
+import urllib.parse
 import discord
 import mwclient
 import re
@@ -47,9 +48,7 @@ class Leaguepedia(commands.Cog):
             if tournaments_results['cargoquery']:
                 for tournament in tournaments_results['cargoquery']:
                     # Fetch the tournament's information and add it to the display_tournaments list
-                    print(tournament['title']['OverviewPage'])
                     tournament_details = site.api('cargoquery', tables='MatchSchedule', fields='Team1,Team2,DateTime_UTC,ShownName,Round,Stream,OverviewPage', limit=5, order_by='DateTime_UTC ASC', where='DateTime_UTC > NOW() AND WINNER IS NULL AND OverviewPage="{0}"'.format(tournament['title']['OverviewPage']))
-                    print(tournament_details['cargoquery'])
                     display_tournaments = display_tournaments + tournament_details['cargoquery']
             else:
                 # If it doesn't match a tournament, try to get results directly from MatchSchedule
@@ -67,7 +66,7 @@ class Leaguepedia(commands.Cog):
         del display_tournaments[5:]
 
         if regex:
-            embed = discord.Embed(title='Upcoming matches', url='https://lol.gamepedia.com/Special:RunQuery/SpoilerFreeSchedule?SFS[1]={0}&pfRunQueryFormName=SpoilerFreeSchedule'.format(display_tournaments[0]['title']['OverviewPage']).replace(' ', '%20'))
+            embed = discord.Embed(title='Upcoming matches', url='https://lol.gamepedia.com/Special:RunQuery/SpoilerFreeSchedule?SFS[1]={0}&pfRunQueryFormName=SpoilerFreeSchedule'.format(urllib.parse.quote(display_tournaments[0]['title']['OverviewPage'])))
         else:
             embed = discord.Embed(title='Upcoming matches')
         times = ''
@@ -84,9 +83,9 @@ class Leaguepedia(commands.Cog):
             # Request page for each team & get short name
             team1_tag = site.expandtemplates('{{Team|' + match['title']['Team1'].lower() + '|short}}')
             team2_tag = site.expandtemplates('{{Team|' + match['title']['Team2'].lower() + '|short}}')
-            matchups += '[{0}](https://lol.gamepedia.com/{1}) vs [{2}](https://lol.gamepedia.com/{3})\n'.format(team1_tag, match['title']['Team1'].replace(' ', '_'), team2_tag, match['title']['Team2'].replace(' ', '_'))
+            matchups += '[{0}](https://lol.gamepedia.com/{1}) vs [{2}](https://lol.gamepedia.com/{3})\n'.format(team1_tag, urllib.parse.quote(match['title']['Team1'].replace(' ', '_')), team2_tag, urllib.parse.quote(match['title']['Team2'].replace(' ', '_')))
 
-            tournaments += '[{0}](https://lol.gamepedia.com/{1})\n'.format(match['title']['ShownName'], match['title']['OverviewPage'].replace(' ', '_'))
+            tournaments += '[{0}](https://lol.gamepedia.com/{1})\n'.format(match['title']['ShownName'], urllib.parse.quote(match['title']['OverviewPage'].replace(' ', '_')))
         embed.add_field(name='Tournament', inline=True, value=tournaments)
         embed.add_field(name='Match', inline=True, value=matchups)
         embed.add_field(name='Countdown', inline=True, value=times)
