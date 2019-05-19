@@ -59,7 +59,7 @@ class Leaguepedia(commands.Cog):
                 for tournament in tournaments_results['cargoquery']:
                     # Fetch the tournament's information and add it to the display_tournaments list
                     print(tournament['title']['OverviewPage'])
-                    tournament_details = site.api('cargoquery', tables='MatchSchedule', fields='Team1,Team2,DateTime_UTC,ShownName,Round,Stream,OverviewPage', limit=5, order_by='DateTime_UTC ASC', where='DateTime_UTC > NOW() AND WINNER IS NULL AND OverviewPage="{0}'.format(tournament['title']['OverviewPage']))
+                    tournament_details = site.api('cargoquery', tables='MatchSchedule', fields='Team1,Team2,DateTime_UTC,ShownName,Round,Stream,OverviewPage', limit=5, order_by='DateTime_UTC ASC', where='DateTime_UTC > NOW() AND WINNER IS NULL AND OverviewPage="{0}"'.format(tournament['title']['OverviewPage']))
                     print(tournament_details['cargoquery'])
                     display_tournaments = display_tournaments + tournament_details['cargoquery']
             else:
