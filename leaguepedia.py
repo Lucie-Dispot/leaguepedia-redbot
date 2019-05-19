@@ -10,17 +10,6 @@ def sortByDate(object):
     return object['title']['DateTime UTC']
 
 class Leaguepedia(commands.Cog):
-    # Test command.
-    # Returns the name and base health of the five first champions in the game.
-    @commands.command()
-    async def champions(self, ctx):
-        result = site.api('cargoquery', tables='InfoboxChampion', fields='Name,Health', limit=5)
-        # Note: Discord doesn't support tables
-        msg = '| Name | Health |\n| ------ | ------ |\n'
-        for champion in result['cargoquery']:
-            msg += '| {0} | {1} |\n'.format(champion['title']['Name'], champion['title']['Health'])
-        await ctx.send(msg)
-
     # Returns information regarding the requested player.
     @commands.command()
     async def player(self, ctx):
