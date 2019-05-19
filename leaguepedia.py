@@ -53,22 +53,18 @@ class Leaguepedia(commands.Cog):
         regex = re.match('^!upcoming (.*)', ctx.message.content)
         if regex:
             # Get League from CCMTournaments
-            tournaments_results = site.api('cargoquery', tables='CCMTournaments', fields='OverviewPage,StandardName', order_by='Year DESC', where='lower(League)="{0}"'.format(regex.group(1).lower()))
-            # TODO Find closest match if no results
-            if not tournaments_results['cargoquery']:
-                await ctx.send('Tournament not found')
-                return
-            else:
-                current_leagues = site.api('cargoquery', tables='CCCurrentLeagues', fields='Event')['cargoquery']
+            tournaments_results = site.api('cargoquery', tables='CCMTournaments', fields='OverviewPage,StandardName', order_by='Year DESC', where='League LIKE "{0}"'.format(regex.group(1)))
+            # If it matches one or more tournaments, use the matches from those tournaments
+            if tournaments_results['cargoquery']:
                 for tournament in tournaments_results['cargoquery']:
-                    # If the tournament is found in current_leagues, fetch its information and add it to the display_tournaments list
-                    found = False
-                    for league in current_leagues:
-                        if league['title']['Event'] == tournament['title']['StandardName']:
-                            found = True
-                    if found:
-                        tournament_details = site.api('cargoquery', tables='MatchSchedule', fields='Team1,Team2,DateTime_UTC,ShownName,Round,Stream,OverviewPage', limit=5, order_by='DateTime_UTC ASC', where='DateTime_UTC > NOW() AND WINNER IS NULL AND OverviewPage="{0}"'.format(tournament['title']['OverviewPage']))
-                        display_tournaments = display_tournaments + tournament_details['cargoquery']
+                    # Fetch the tournament's information and add it to the display_tournaments list
+                    print(tournament['title']['OverviewPage'])
+                    tournament_details = site.api('cargoquery', tables='MatchSchedule', fields='Team1,Team2,DateTime_UTC,ShownName,Round,Stream,OverviewPage', limit=5, order_by='DateTime_UTC ASC', where='DateTime_UTC > NOW() AND WINNER IS NULL AND OverviewPage="{0}'.format(tournament['title']['OverviewPage']))
+                    print(tournament_details['cargoquery'])
+                    display_tournaments = display_tournaments + tournament_details['cargoquery']
+            else:
+                # If it doesn't match a tournament, try to get results directly from MatchSchedule
+                display_tournaments = site.api('cargoquery', tables='MatchSchedule', fields='Team1,Team2,DateTime_UTC,ShownName,Round,Stream,OverviewPage', limit=5, order_by='DateTime_UTC ASC', where='DateTime_UTC > NOW() AND WINNER IS NULL AND (ShownName LIKE "%{0}%" OR OverviewPage LIKE "%{0}%")'.format(regex.group(1)))['cargoquery']
         else:
             # Global upcoming games
             results = site.api('cargoquery', tables='MatchSchedule', fields='Team1,Team2,DateTime_UTC,ShownName,Round,Stream,OverviewPage', limit=5, order_by='DateTime_UTC ASC', where='DateTime_UTC > NOW() AND WINNER IS NULL')
