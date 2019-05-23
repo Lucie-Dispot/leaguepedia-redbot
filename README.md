@@ -25,7 +25,7 @@ redbot-setup
 redbot {name} # name is the name chosen during setup
 ```
 
-During the last step you should be prompted for a token. See the discord documentation about how to create it and where to find it: https://discordpy.readthedocs.io/en/rewrite/discord.html#creating-a-bot-account  
+During the last step you should be prompted for a token. See the discord documentation about how to create it and where to find it: https://discordpy.readthedocs.io/en/latest/discord.html  
 
 Information regarding bot management and joining servers can also be found in this documentation.
 
