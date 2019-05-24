@@ -15,7 +15,7 @@ def sortByDate(object):
 
 def formatPlayerInfos(player_infos):
     print(player_infos)
-    embed = discord.Embed(title=player_infos['ID'], description=player_infos['Name'], url='https://lol.gamepedia.com/{0}'.format(urrlib.parse.quote(player_infos['ID'].replace(' ', '_'))))
+    embed = discord.Embed(title=player_infos['ID'], description=player_infos['Name'], url='https://lol.gamepedia.com/{0}'.format(urllib.parse.quote(player_infos['ID'].replace(' ', '_'))))
     embed.set_thumbnail(url='https://lol.gamepedia.com/Special:Filepath/{0}'.format(urllib.parse.quote(player_infos['Image'].replace(' ', '_'))))
     team = player_infos['Team']
     if not team:
@@ -43,13 +43,12 @@ class Leaguepedia(commands.Cog):
             line = message[line_id]
             # Ignore if wrong line
             if line.startswith(INT_TO_EMOJI[line_id]):
-                player_full_name = line[len(INT_TO_EMOJI[line_id])+1:].split(' |')[0][:-1].split('(')
-                print(player_full_name)
-                result = site.api('cargoquery', tables='InfoboxPlayer', fields='ID,Image,Name,Team,Role', where='Name="{0}" and ID="{1}"'.format(player_full_name[1], player_full_name[0]))
-                print(result)
+                # The name is between the emoji displayed and a |, + spaces before and after
+                player_full_name = line[len(INT_TO_EMOJI[line_id])+1:].split(' |')[0]
+                result = site.api('cargoquery', tables='InfoboxPlayer', fields='ID,Image,Name,Team,Role,_pageName=Page', where='_pageName="{0}"'.format(player_full_name))
                 player_infos = result['cargoquery'][0]['title']
                 embed = formatPlayerInfos(player_infos)
-                await ctx.send(embed=embed)
+                await reaction.message.channel.send(embed=embed)
 
     # Returns information regarding the requested player.
     @commands.command()
