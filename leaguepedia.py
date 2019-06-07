@@ -14,7 +14,7 @@ def sortByDate(object):
     return object['title']['DateTime UTC']
 
 def formatPlayerInfos(player_infos):
-    embed = discord.Embed(title=player_infos['ID'], description=player_infos['Name'], url='https://lol.gamepedia.com/{0}'.format(urllib.parse.quote(player_infos['ID'].replace(' ', '_'))))
+    embed = discord.Embed(title=player_infos['ID'], description=player_infos['Name'], url='https://lol.gamepedia.com/{0}'.format(player_infos['Page'].replace(' ', '_')))
     embed.set_thumbnail(url='https://lol.gamepedia.com/Special:Filepath/{0}'.format(urllib.parse.quote(player_infos['Image'].replace(' ', '_'))))
     team = player_infos['Team']
     if not team:
@@ -99,7 +99,7 @@ class Leaguepedia(commands.Cog):
             await ctx.send(disambig_prompt)
         else:
             if not result:
-                result = site.api('cargoquery', tables='InfoboxPlayer', fields='ID,Image,Name,Team,Role', where='Name LIKE "%{0}%" OR ID LIKE "{0}"'.format(player_name))
+                result = site.api('cargoquery', tables='InfoboxPlayer', fields='ID,Image,Name,Team,Role,_pageName=Page', where='Name LIKE "%{0}%" OR ID LIKE "{0}"'.format(player_name))
             if not result['cargoquery']:
                 await ctx.send('`Unknown player`')
                 return
