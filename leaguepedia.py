@@ -14,7 +14,6 @@ def sortByDate(object):
     return object['title']['DateTime UTC']
 
 def formatPlayerInfos(player_infos):
-    print(player_infos)
     embed = discord.Embed(title=player_infos['ID'], description=player_infos['Name'], url='https://lol.gamepedia.com/{0}'.format(urllib.parse.quote(player_infos['ID'].replace(' ', '_'))))
     embed.set_thumbnail(url='https://lol.gamepedia.com/Special:Filepath/{0}'.format(urllib.parse.quote(player_infos['Image'].replace(' ', '_'))))
     team = player_infos['Team']
@@ -28,13 +27,30 @@ class Leaguepedia(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    # Listens to own disambig prompts & add reactions to it
+    async def disambig_prompt_listener(self, message):
+        # Don't answer if the message isn't from the bot
+        if message.author != self.bot.user:
+            return
+        # Don't answer if this is not a disambig message
+        split_message = message.content.split('\n')
+        if (split_message[0] != 'Multiple players found for this query:'):
+            return
+        # For each line of the prompt except the first and the last, add a reaction
+        for i in range(0, len(split_message)-2):
+            await message.add_reaction(EMOJI_TO_INT[i+1])
+
     # Reacts to reactions to the player disambig prompts & sends info on a right reaction
     async def player_reaction_listener(self, reaction, user):
         # Don't answer if the original message isn't from the bot
         if reaction.message.author != self.bot.user:
             return
-        # Don't answer if this reaction already has been sent
-        if reaction.count > 1:
+        # Don't answer if the author of the reaction is the bot
+        if user == self.bot.user:
+            return
+        # Don't answer & remove reaction if this reaction shouldn't be sent (e.g too late)
+        if reaction.count == 1:
+            await reaction.message.clear_reactions()
             return
         message = reaction.message.content.split('\n')
         if (message[0] == 'Multiple players found for this query:'):
@@ -49,6 +65,8 @@ class Leaguepedia(commands.Cog):
                 player_infos = result['cargoquery'][0]['title']
                 embed = formatPlayerInfos(player_infos)
                 await reaction.message.channel.send(embed=embed)
+                # Remove all emojis
+                await reaction.message.clear_reactions()
 
     # Returns information regarding the requested player.
     @commands.command()
@@ -156,3 +174,4 @@ def setup(bot):
     cog = Leaguepedia(bot)
     bot.add_cog(cog)
     bot.add_listener(cog.player_reaction_listener, 'on_reaction_add')
+    bot.add_listener(cog.disambig_prompt_listener, 'on_message')
