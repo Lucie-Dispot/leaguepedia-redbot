@@ -23,6 +23,24 @@ def formatPlayerInfos(player_infos):
     embed.add_field(name='Team', value=team, inline=True)
     return embed
 
+async def createDisambigPrompt(ctx, disambig_result):
+    # Prompt the user & override player_name with selected user
+    disambig_prompt = 'Multiple players found for this query:\n'
+    i = 0
+    for player_ambig in disambig_result['cargoquery']:
+        i += 1
+        emoji = INT_TO_EMOJI[i]
+        if 'PageExists' in player_ambig['title'] and player_ambig['title']['PageExists'] == '0':
+            emoji = ':exclamation:'
+        disambig_prompt += '{0} {1} | '.format(emoji, player_ambig['title']['Name'])
+        if 'IsFormer' in player_ambig['title'] and player_ambig['title']['IsFormer'] == 'Yes':
+            disambig_prompt += 'Former team:'
+        else:
+            disambig_prompt += 'Team:'
+        disambig_prompt += ' {0} - Role: {1} - Region: {2}\n'.format(player_ambig['title']['Team'], player_ambig['title']['Role'], player_ambig['title']['Region'])
+    disambig_prompt += 'Please react to this query specifying the number of the player you are looking for.'
+    await ctx.send(disambig_prompt)
+
 class Leaguepedia(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -37,8 +55,10 @@ class Leaguepedia(commands.Cog):
         if (split_message[0] != 'Multiple players found for this query:'):
             return
         # For each line of the prompt except the first and the last, add a reaction
-        for i in range(0, len(split_message)-2):
-            await message.add_reaction(EMOJI_TO_INT[i+1])
+        split_message = split_message[1:][:-1]
+        for i in range(0, len(split_message)):
+            if split_message[i].startswith(INT_TO_EMOJI[i+1]):
+                await message.add_reaction(EMOJI_TO_INT[i+1])
 
     # Reacts to reactions to the player disambig prompts & sends info on a right reaction
     async def player_reaction_listener(self, reaction, user):
@@ -83,30 +103,24 @@ class Leaguepedia(commands.Cog):
             return
         player_name = match.group(1)
         # First query the disambig page
-        disambig_result = site.api('cargoquery', tables='PlayerDisambig', fields='Name,Region,Team,Role,IsFormer', limit='9', where='Name LIKE "%{0}%"'.format(player_name))
+        disambig_result = site.api('cargoquery', tables='PlayerDisambig', fields='Name,Region,Team,Role,IsFormer,PageExists', limit='9', where='Name LIKE "%{0}%"'.format(player_name))
+        result = None
         # If there is more than one disambig result, prompt the user for the actual player
         if disambig_result['cargoquery'] and len(disambig_result['cargoquery']) == 1:
             # The player name is the one of the disambig
             result = site.api('cargoquery', tables='InfoboxPlayer', fields='ID,Image,Name,Team,Role,_pageName=Page', where='_pageName="{0}"'.format(disambig_result['cargoquery'][0]['title']['Name']))
         if disambig_result['cargoquery'] and len(disambig_result['cargoquery']) > 1:
-            # Prompt the user & override player_name with selected user
-            disambig_prompt = 'Multiple players found for this query:\n'
-            i = 0
-            for player_ambig in disambig_result['cargoquery']:
-                i += 1
-                disambig_prompt += '{0} {1} | '.format(INT_TO_EMOJI[i], player_ambig['title']['Name'])
-                if player_ambig['title']['IsFormer'] == 'Yes':
-                    disambig_prompt += 'Former team:'
-                else:
-                    disambig_prompt += 'Team:'
-                disambig_prompt += ' {0} - Role: {1} - Region: {2}\n'.format(player_ambig['title']['Team'], player_ambig['title']['Role'], player_ambig['title']['Region'])
-            disambig_prompt += 'Please react to this query specifying the number of the player you are looking for.'
-            await ctx.send(disambig_prompt)
+            await createDisambigPrompt(ctx, disambig_result)
         else:
             if not result:
                 result = site.api('cargoquery', tables='InfoboxPlayer', fields='ID,Image,Name,Team,Role,_pageName=Page', where='Name LIKE "%{0}%" OR ID LIKE "{0}"'.format(player_name))
             if not result['cargoquery']:
-                await ctx.send('`Unknown player`')
+                # Try to wildcard the name & disambig it
+                results = site.api('cargoquery', tables='InfoboxPlayer', fields='ID=Name,Team,Role,Country=Region,_pageName=Page', where='Name LIKE "%{0}%" OR ID LIKE "%{0}%"'.format(player_name))
+                if results['cargoquery']:
+                    await createDisambigPrompt(ctx, results)
+                else:
+                    await ctx.send('`Unknown player`')
                 return
             # Pretty print
             player_infos = result['cargoquery'][0]['title']
