@@ -83,7 +83,7 @@ class Leaguepedia(commands.Cog):
             return
         player_name = match.group(1)
         # First query the disambig page
-        disambig_result = site.api('cargoquery', tables='PlayerDisambig', fields='Name,Region,Team,Role', limit='9', where='Name LIKE "%{0}%"'.format(player_name))
+        disambig_result = site.api('cargoquery', tables='PlayerDisambig', fields='Name,Region,Team,Role,IsFormer', limit='9', where='Name LIKE "%{0}%"'.format(player_name))
         # If there is more than one disambig result, prompt the user for the actual player
         if disambig_result['cargoquery'] and len(disambig_result['cargoquery']) == 1:
             # The player name is the one of the disambig
@@ -94,7 +94,12 @@ class Leaguepedia(commands.Cog):
             i = 0
             for player_ambig in disambig_result['cargoquery']:
                 i += 1
-                disambig_prompt += '{0} {1} | Team: {2} - Role: {3} - Region: {4}\n'.format(INT_TO_EMOJI[i], player_ambig['title']['Name'], player_ambig['title']['Team'], player_ambig['title']['Role'], player_ambig['title']['Region'])
+                disambig_prompt += '{0} {1} | '.format(INT_TO_EMOJI[i], player_ambig['title']['Name'])
+                if player_ambig['title']['IsFormer'] == 'Yes':
+                    disambig_prompt += 'Former team:'
+                else:
+                    disambig_prompt += 'Team:'
+                disambig_prompt += ' {0} - Role: {1} - Region: {2}\n'.format(player_ambig['title']['Team'], player_ambig['title']['Role'], player_ambig['title']['Region'])
             disambig_prompt += 'Please react to this query specifying the number of the player you are looking for.'
             await ctx.send(disambig_prompt)
         else:
