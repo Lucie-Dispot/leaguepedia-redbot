@@ -65,9 +65,12 @@ class Leaguepedia(commands.Cog):
             return
         player_name = match.group(1)
         # First query the disambig page
-        disambig_result = site.api('cargoquery', tables='PlayerDisambig', fields='Name,Region,Team,Role', limit='5', where='Name LIKE "%{0}%"'.format(player_name))
+        disambig_result = site.api('cargoquery', tables='PlayerDisambig', fields='Name,Region,Team,Role', limit='9', where='Name LIKE "%{0}%"'.format(player_name))
         # If there is more than one disambig result, prompt the user for the actual player
-        if disambig_result['cargoquery']:
+        if disambig_result['cargoquery'] and len(disambig_result['cargoquery']) == 1:
+            # The player name is the one of the disambig
+            result = site.api('cargoquery', tables='InfoboxPlayer', fields='ID,Image,Name,Team,Role,_pageName=Page', where='_pageName="{0}"'.format(disambig_result['cargoquery'][0]['title']['Name']))
+        if disambig_result['cargoquery'] and len(disambig_result['cargoquery']) > 1:
             # Prompt the user & override player_name with selected user
             disambig_prompt = 'Multiple players found for this query:\n'
             i = 0
@@ -77,7 +80,8 @@ class Leaguepedia(commands.Cog):
             disambig_prompt += 'Please react to this query specifying the number of the player you are looking for.'
             await ctx.send(disambig_prompt)
         else:
-            result = site.api('cargoquery', tables='InfoboxPlayer', fields='ID,Image,Name,Team,Role', where='Name LIKE "%{0}%" OR ID LIKE "{0}"'.format(player_name))
+            if not result:
+                result = site.api('cargoquery', tables='InfoboxPlayer', fields='ID,Image,Name,Team,Role', where='Name LIKE "%{0}%" OR ID LIKE "{0}"'.format(player_name))
             if not result['cargoquery']:
                 await ctx.send('`Unknown player`')
                 return
