@@ -103,7 +103,7 @@ class Leaguepedia(commands.Cog):
             return
         player_name = match.group(1)
         # First query the disambig page
-        disambig_result = site.api('cargoquery', tables='PlayerDisambig', fields='Name,Region,Team,Role,IsFormer,PageExists', limit='9', where='Name LIKE "%{0}%"'.format(player_name))
+        disambig_result = site.api('cargoquery', tables='PlayerDisambig', fields='Name,Region,Team,Role,IsFormer,PageExists', limit='9', where='Name LIKE "{0}%"'.format(player_name))
         result = None
         # If there is more than one disambig result, prompt the user for the actual player
         if disambig_result['cargoquery'] and len(disambig_result['cargoquery']) == 1:
