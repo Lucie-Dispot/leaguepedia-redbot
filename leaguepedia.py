@@ -141,7 +141,7 @@ class Leaguepedia(commands.Cog):
         regex = re.match(regex_string, ctx.message.content)
         if regex:
             # Get League from CCMTournaments
-            tournaments_results = site.api('cargoquery', tables='CCMTournaments', fields='OverviewPage,StandardName', order_by='Year DESC', where='League LIKE "{0}"'.format(regex.group(1)))
+            tournaments_results = site.api('cargoquery', tables='Tournaments', fields='OverviewPage,StandardName', order_by='Year DESC', where='League LIKE "{0}"'.format(regex.group(1)))
             # If it matches one or more tournaments, use the matches from those tournaments
             if tournaments_results['cargoquery']:
                 for tournament in tournaments_results['cargoquery']:
