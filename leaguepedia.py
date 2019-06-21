@@ -81,7 +81,7 @@ class Leaguepedia(commands.Cog):
             if line.startswith(INT_TO_EMOJI[line_id]):
                 # The name is between the emoji displayed and a |, + spaces before and after
                 player_full_name = line[len(INT_TO_EMOJI[line_id])+1:].split(' |')[0]
-                result = site.api('cargoquery', tables='InfoboxPlayer', fields='ID,Image,Name,Team,Role,_pageName=Page', where='_pageName="{0}"'.format(player_full_name))
+                result = site.api('cargoquery', tables='Players', fields='ID,Image,Name,Team,Role,_pageName=Page', where='_pageName="{0}"'.format(player_full_name))
                 player_infos = result['cargoquery'][0]['title']
                 embed = formatPlayerInfos(player_infos)
                 await reaction.message.channel.send(embed=embed)
@@ -108,15 +108,15 @@ class Leaguepedia(commands.Cog):
         # If there is more than one disambig result, prompt the user for the actual player
         if disambig_result['cargoquery'] and len(disambig_result['cargoquery']) == 1:
             # The player name is the one of the disambig
-            result = site.api('cargoquery', tables='InfoboxPlayer', fields='ID,Image,Name,Team,Role,_pageName=Page', where='_pageName="{0}"'.format(disambig_result['cargoquery'][0]['title']['Name']))
+            result = site.api('cargoquery', tables='Players', fields='ID,Image,Name,Team,Role,_pageName=Page', where='_pageName="{0}"'.format(disambig_result['cargoquery'][0]['title']['Name']))
         if disambig_result['cargoquery'] and len(disambig_result['cargoquery']) > 1:
             await createDisambigPrompt(ctx, disambig_result)
         else:
             if not result:
-                result = site.api('cargoquery', tables='InfoboxPlayer', fields='ID,Image,Name,Team,Role,_pageName=Page', where='Name LIKE "%{0}%" OR ID LIKE "{0}"'.format(player_name))
+                result = site.api('cargoquery', tables='Players', fields='ID,Image,Name,Team,Role,_pageName=Page', where='Name LIKE "%{0}%" OR ID LIKE "{0}"'.format(player_name))
             if not result['cargoquery']:
                 # Try to wildcard the name & disambig it
-                results = site.api('cargoquery', tables='InfoboxPlayer', fields='ID=Name,Team,Role,Country=Region,_pageName=Page', where='Name LIKE "%{0}%" OR ID LIKE "%{0}%"'.format(player_name))
+                results = site.api('cargoquery', tables='Players', fields='ID=Name,Team,Role,Country=Region,_pageName=Page', where='Name LIKE "%{0}%" OR ID LIKE "%{0}%"'.format(player_name))
                 if results['cargoquery']:
                     await createDisambigPrompt(ctx, results)
                 else:
